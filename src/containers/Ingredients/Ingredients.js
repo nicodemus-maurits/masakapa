@@ -1,7 +1,8 @@
 import React, { Fragment } from 'react';
 import { connect } from 'react-redux';
 import clsx from 'clsx';
-import { Grid, Paper, makeStyles } from '@material-ui/core';
+import { Grid, Paper, makeStyles, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
+import { CheckBoxOutlineBlank, CheckBox } from '@material-ui/icons';
 
 import { TOGGLE_SELECTED_INGREDIENT } from 'store/actions/actionConstants';
 
@@ -27,29 +28,39 @@ const Ingredient = props => {
     let selectedIngredientsContent = <div>No Selected Ingredient</div>;
     if (selectedIngredients.length) {
         selectedIngredientsContent =
-            <ul>
+            <List aria-label="Ingredient List">
                 {selectedIngredients.map(ing => (
-                    <li key={ing.id} onClick={() => props.onToggleSelectedIngredient(ing.id)}>{ing.name}</li>
+                    <ListItem button key={ing.id} onClick={() => props.onToggleSelectedIngredient(ing.id)}>
+                        <ListItemText primary={ing.name} />
+                        <ListItemIcon>
+                            <CheckBox />
+                        </ListItemIcon>
+                    </ListItem>
                 ))}
-            </ul>
+            </List>
     }
 
     return (
         <Fragment>
             <Grid container spacing={3}>
                 {/* Chart */}
-                <Grid item xs={12} md={8} lg={9}>
+                <Grid item xs={12} md={6} lg={6}>
                     <Paper className={fixedHeightPaper}>
                         {/** <Chart /> */}
-                        <ul>
+                        <List aria-label="Ingredient List">
                             {unselectedIngredients.map(ing => (
-                                <li key={ing.id} onClick={() => props.onToggleSelectedIngredient(ing.id)}>{ing.name}</li>
+                                <ListItem button key={ing.id} onClick={() => props.onToggleSelectedIngredient(ing.id)}>
+                                    <ListItemText primary={ing.name} />
+                                    <ListItemIcon>
+                                        <CheckBoxOutlineBlank />
+                                    </ListItemIcon>
+                                </ListItem>
                             ))}
-                        </ul>
+                        </List>
                     </Paper>
                 </Grid>
                 {/* Recent Deposits */}
-                <Grid item xs={12} md={4} lg={3}>
+                <Grid item xs={12} md={6} lg={6}>
                     <Paper className={fixedHeightPaper}>
                         {selectedIngredientsContent}
                     </Paper>
