@@ -1,7 +1,7 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import clsx from 'clsx';
-import { Grid, Paper, makeStyles, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
+import { Grid, Paper, makeStyles, List, ListItem, ListItemIcon, ListItemText, TextField } from '@material-ui/core';
 import { CheckBoxOutlineBlank, CheckBox } from '@material-ui/icons';
 
 import { TOGGLE_SELECTED_INGREDIENT } from 'store/actions/actionConstants';
@@ -19,18 +19,46 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const Ingredient = props => {
+    const [currentlyDisplayed, setCurrentlyDisplayed] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+
     const classes = useStyles();
     const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
-    const unselectedIngredients = props.ingredients.filter(ing => ing.selected === false);
-    const selectedIngredients = props.ingredients.filter(ing => ing.selected === true);
+    useEffect(() => {
+        setCurrentlyDisplayed(props.unselectedIngredients);
+    }, [props.unselectedIngredients]);
+
+    const onFilter = event => {
+        setSearchTerm(event.target.value);
+
+        let curList = [];
+        let newList = [];
+
+        if (event.target.value !== '') {
+            curList = props.unselectedIngredients;
+            newList = curList.filter(ing => {
+                const lc = ing.name.toLowerCase();
+                const filter = event.target.value.toLowerCase();
+                return lc.includes(filter);
+            });
+        } else {
+            newList = props.unselectedIngredients;
+        }
+        setCurrentlyDisplayed(newList);
+    }
+
+    const onSelectedIngredient = id => {
+        setSearchTerm('');
+        props.onToggleSelectedIngredient(id);
+    }
 
     let selectedIngredientsContent = <div>No Selected Ingredient</div>;
-    if (selectedIngredients.length) {
+    if (props.selectedIngredients.length) {
         selectedIngredientsContent =
             <List aria-label="Ingredient List">
-                {selectedIngredients.map(ing => (
-                    <ListItem button key={ing.id} onClick={() => props.onToggleSelectedIngredient(ing.id)}>
+                {props.selectedIngredients.map(ing => (
+                    <ListItem button key={ing.id} onClick={() => onSelectedIngredient(ing.id)}>
                         <ListItemText primary={ing.name} />
                         <ListItemIcon>
                             <CheckBox />
@@ -46,10 +74,16 @@ const Ingredient = props => {
                 {/* Chart */}
                 <Grid item xs={12} md={6} lg={6}>
                     <Paper className={fixedHeightPaper}>
+                        <TextField
+                            label="Search"
+                            onChange={onFilter}
+                            margin="normal"
+                            value={searchTerm}
+                        />
                         {/** <Chart /> */}
                         <List aria-label="Ingredient List">
-                            {unselectedIngredients.map(ing => (
-                                <ListItem button key={ing.id} onClick={() => props.onToggleSelectedIngredient(ing.id)}>
+                            {currentlyDisplayed.map(ing => (
+                                <ListItem button key={ing.id} onClick={() => onSelectedIngredient(ing.id)}>
                                     <ListItemText primary={ing.name} />
                                     <ListItemIcon>
                                         <CheckBoxOutlineBlank />
@@ -79,7 +113,8 @@ const Ingredient = props => {
 
 const mapStateToProps = state => {
     return {
-        ingredients: state.ingredients.ingredients
+        selectedIngredients: state.ingredients.ingredients.filter(ing => ing.selected === true),
+        unselectedIngredients: state.ingredients.ingredients.filter(ing => ing.selected === false)
     };
 };
 
